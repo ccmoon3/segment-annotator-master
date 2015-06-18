@@ -96,6 +96,7 @@ SegmentAnnotator.prototype.setLabels = function(newLabels) {
 };
 
 // Remove a label.
+// this.annotation[i]:the label color of segement[i]
 SegmentAnnotator.prototype.removeLabel = function(index) {
   var newLabels = [],
       i;
@@ -217,6 +218,7 @@ SegmentAnnotator.prototype._updateAnnotation = function(index, render) {
     data[offset + 0] = color[0];
     data[offset + 1] = color[1];
     data[offset + 2] = color[2];
+    data[offset + 3] = this.backgroundAlpha;
   }
   if (render){
       if (this.currentSegment !== null) {
@@ -488,6 +490,16 @@ SegmentAnnotator.prototype._initializeHighlightLayer = function() {
   return this;
 };
 
+function isIn(array,value)
+    {
+        var len=array.length;
+        for(var i=0;i<len;i++)
+        {
+            if(array[i]==value)
+                return true;
+        }
+        return false;
+ }
 // Set alpha value at the annotation layer.
 SegmentAnnotator.prototype._setAnnotationAlpha = function(alpha, atBoundary) {
   var context = this.layers.annotation.canvas.getContext('2d'),
@@ -495,10 +507,25 @@ SegmentAnnotator.prototype._setAnnotationAlpha = function(alpha, atBoundary) {
       width = this.width,
       height = this.height,
       data = this.layers.annotation.image.data;
-  for (var i = 0; i < height; ++i) {
-    for (var j = 0; j < width; ++j) {
-      var index = indexMap[i * width + j],
-          isBoundary = (i === 0 ||
+
+     //get labeled pixels
+     
+   if(!atBoundary){
+        for (var i = 0; i < this.segments; ++i) {
+           if(this.annotations[i]>0){
+               var pixels = this.pixelsMap[i];
+               for (var j = 0; j < pixels.length; ++j) {       
+                   data[4 * pixels[j] + 3] = alpha;
+                }
+            }
+         }
+    }
+
+    else if(atBoundary){
+        for (var i = 0; i < height; ++i) {
+           for (var j = 0; j < width; ++j) {
+              var index = indexMap[i * width + j],
+              isBoundary = (i === 0 ||
                         j === 0 ||
                         i === (height - 1) ||
                         j === (width - 1) ||
@@ -507,17 +534,11 @@ SegmentAnnotator.prototype._setAnnotationAlpha = function(alpha, atBoundary) {
                         index !== indexMap[(i - 1) * width + j] ||
                         index !== indexMap[(i + 1) * width + j]);
    //display borders       
-      if (isBoundary && atBoundary)
-      {
-        data[4 * (i * width + j) + 3] = alpha;
-      }
-   //display label colors   
-      else if (!isBoundary && !atBoundary)
-      {
-        data[4 * (i * width + j) + 3] = alpha;
-      }
-    }
-  }
+              if (isBoundary)
+                 data[4 * (i * width + j) + 3] = alpha;   
+            }
+         }
+     }
   context.putImageData(this.layers.annotation.image, 0, 0);
   return this;
 };

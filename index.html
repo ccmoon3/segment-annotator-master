@@ -226,13 +226,13 @@
         createToggleButton(document.getElementById('fill-view-button'), function() {
           fillAlpha = 0;
           annotator.setFillAlpha(fillAlpha);
-          annotator.setBoundaryAlpha(fillAlpha);
+          annotator.setBoundaryAlpha(192);
         }, function() {
-          fillAlpha = 192;
+          fillAlpha = 128;
           annotator.setFillAlpha(fillAlpha);
-       //   if (boundaryEnabled)
-       //     annotator.setBoundaryAlpha(192);
-       //   else
+          if (boundaryEnabled)
+            annotator.setBoundaryAlpha(192);
+          else
             annotator.setBoundaryAlpha(fillAlpha);
         });
         // Set up json importer.
