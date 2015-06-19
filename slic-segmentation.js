@@ -423,7 +423,8 @@
   }
 
   // Compute segmentation.
-  function computeSegmentation(imageData, options) {
+  window.computeSegmentation = function(imageData, options) {
+ // function computeSegmentation(imageData, options) {
     var segmentation = computeSLICSegmentation(imageData, options),
         numSegments = remapLabels(segmentation);
     if (options.callback) {
@@ -475,16 +476,17 @@
   }
 
   // Public API.
-  window.SLICSegmentation = function(imageURL, options) {
+  window.SLICSegmentation = function(image, options) {
     if (typeof options === 'undefined') options = {};
     // the lateral side of a rectangle superpixel in pixels.
     if (options.regionSize === undefined) options.regionSize = 40;
     // width or high should be larger than 20 pixels
     if (options.minRegionSize === undefined)
       options.minRegionSize = options.regionSize * options.regionSize / 4;
-    var image = new Image();
-    image.src = imageURL;
-    image.crossOrigin = null;
+ //   var image = new Image();
+ //   image.src = imageURL;
+ //   image.crossOrigin = null;
+
     image.onerror = function() { onErrorImageLoad(image); };
     image.onload = function() { onSuccessImageLoad(image, options); };
   };

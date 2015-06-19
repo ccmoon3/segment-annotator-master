@@ -94,6 +94,42 @@ SegmentAnnotator.prototype.setLabels = function(newLabels) {
   this._renderAnnotation();
   return this;
 };
+SegmentAnnotator.prototype.setPartImage = function() {
+  this._redrawPartImage(4);
+  return this;
+};
+
+SegmentAnnotator.prototype._redrawPartImage = function(index) {
+    var image = new Image();
+    image.src = 'example.png';
+    var canvas = document.createElement('canvas');
+    canvas.width = image.width;
+    canvas.height = image.height;
+    var context = canvas.getContext('2d');
+    context.drawImage(image, 0, 0);
+    var imageData = context.getImageData(0, 0, image.width, image.height);
+    var data = imageData.data;
+    var pixels = this.pixelsMap[index];
+            var cvs = document.getElementById('part');
+            cvs.width = canvas.width;
+            cvs.height = canvas.height;
+            var ctx = cvs.getContext('2d');
+            var imPartData = ctx.getImageData(0, 0, cvs.width, cvs.height);
+
+           for(var i = 0; i < pixels.length; i++){
+                 imPartData.data[4*pixels[i]+0] = data[4*pixels[i]+0];
+                 imPartData.data[4*pixels[i]+1] = data[4*pixels[i]+1];
+                 imPartData.data[4*pixels[i]+2] = data[4*pixels[i]+2];
+                 imPartData.data[4*pixels[i]+3] = data[4*pixels[i]+3];
+           }
+
+     computeSegmentation(imPartData,{regionSize: 50});
+           ctx.putImageData(imPartData,0,0); 
+  return this;
+};
+
+
+
 
 // Remove a label.
 // this.annotation[i]:the label color of segement[i]
@@ -226,11 +262,14 @@ SegmentAnnotator.prototype._updateAnnotation = function(index, render) {
          for (i = 0; i < pixels.length; ++i)
          data[4 * pixels[i] + 3] = this.fullFillAlpha;
       }
+
+
+
     this.layers.annotation.canvas
       .getContext('2d')
       .putImageData(this.layers.annotation.image, 0, 0);
    //   console.log(pixels);
-
+  
    /*  var cvs = document.createElement('canvas');
      cvs.width = this.layers.annotation.image.width;
      cvs.height = this.layers.annotation.image.height;
@@ -256,7 +295,12 @@ SegmentAnnotator.prototype._initializePixelsIndex = function() {
     this.pixelsMap[i] = [];
   for (i = 0; i < this.indexMap.length; ++i)
     this.pixelsMap[this.indexMap[i]].push(i);
+  window.pixelsMap = this.pixelsMap;
   return this;
+};
+
+SegmentAnnotator.prototype.getPixelsIndex = function(index) {
+  return this.pixelsMap[index];
 };
 
 // Initialize a color map.
@@ -490,16 +534,6 @@ SegmentAnnotator.prototype._initializeHighlightLayer = function() {
   return this;
 };
 
-function isIn(array,value)
-    {
-        var len=array.length;
-        for(var i=0;i<len;i++)
-        {
-            if(array[i]==value)
-                return true;
-        }
-        return false;
- }
 // Set alpha value at the annotation layer.
 SegmentAnnotator.prototype._setAnnotationAlpha = function(alpha, atBoundary) {
   var context = this.layers.annotation.canvas.getContext('2d'),

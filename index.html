@@ -59,7 +59,9 @@
     <div id="annotator-container"></div>
     <div style="display:inline-block;vertical-align:top;padding:0 1em;">
       <p>Labels</p>
-      <div id="legend" class="legend"></div>
+      <div id="legend" class="legend"></div><br />
+<!--      <div id="subSegement-button" class="toggle-button">Subsegment</div>
+      <button type="button">Split</button>-->
       <p>
         <label for="add-label-input">Add:</label>
         <input id="add-label-input" type="text" style="width:6em;" />
@@ -73,16 +75,21 @@
       <p>Data</p>
       <div>
         <div id="import-button" class="toggle-button">Import</div><br />
-        <div id="subSegement-button" class="toggle-button">Subsegement</div><br />
+        <div id="subSegement-button" class="toggle-button">Subsegment</div>
+      <button type="button">Split</button><br />
         <div id="export-button" class="toggle-button">Export</div>
       </div>
     </div>
+    <canvas id="part" ></canvas>
   </div>
   <script type="text/javascript">
 
     window.onload = function() {
-      new SLICSegmentAnnotator('example.png', {
-        regionSize: 30,
+      var image = new Image();
+      image.src = 'example.png';
+      image.crossOrigin = null;
+      new SLICSegmentAnnotator(image, {
+        regionSize: 200,
         container: document.getElementById('annotator-container'),
         // annotation: 'annotation.png' // optional existing annotation data.
         labels: [
@@ -250,18 +257,52 @@
         });
 
         document.getElementById('subSegement-button').addEventListener('click', function() {
-           new SLICSegmentAnnotator(window.segmentImage, {
-                regionSize: 10,
-                container: document.getElementById('annotator-container'),
-                labels: [
-                   {name: 'background', color: [0, 255, 0]},
-                   'Clear sky',
-                   'Thick dark',
-                   'Thick light',
-                   'Thin/Veil',
-                   'Reg. pattern'
-                ],
-           });
+ //          annotator.setPartImage(); 
+
+    var image = new Image();
+    image.src = 'example.png';
+    var canvas = document.createElement('canvas');
+    canvas.width = image.width;
+    canvas.height = image.height;
+    var context = canvas.getContext('2d');
+    context.drawImage(image, 0, 0);
+    var imageData = context.getImageData(0, 0, image.width, image.height);
+    var data = imageData.data;
+
+    var pixels = annotator.getPixelsIndex(3);
+            var cvs = document.getElementById('part');
+            cvs.width = canvas.width;
+            cvs.height = canvas.height;
+            var ctx = cvs.getContext('2d');
+            var imPartData = ctx.getImageData(0, 0, cvs.width, cvs.height);
+
+           for(var i = 0; i < pixels.length; i++){
+                 imPartData.data[4*pixels[i]+0] = data[4*pixels[i]+0];
+                 imPartData.data[4*pixels[i]+1] = data[4*pixels[i]+1];
+                 imPartData.data[4*pixels[i]+2] = data[4*pixels[i]+2];
+                 imPartData.data[4*pixels[i]+3] = data[4*pixels[i]+3];
+           }
+    /*  new SLICSegmentAnnotator('icon.png', {
+        regionSize: 50,
+        container: document.getElementById('annotator-container'),
+        // annotation: 'annotation.png' // optional existing annotation data.
+        labels: [
+          {name: 'background', color: [0, 255, 0]},
+          'Clear sky',
+          'Thick dark',
+          'Thick light',
+          'Thin/Veil',
+          'Reg. pattern'
+          ],
+        onload: function() {
+          initializeLegend(this);
+          initializeLegendAdd(this);
+          initializeButtons(this);
+        }
+      });*/
+
+ //    computeSegmentation(imPartData,{regionSize: 50});
+           ctx.putImageData(imPartData,0,0); 
         });
 
     
